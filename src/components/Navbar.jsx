@@ -14,7 +14,7 @@ const Navbar = () => {
             <div className="collapse navbar-collapse" id="navbarNav">
                <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium">
                   <li className="nav-item">
-                     {/* Use <Link to="/"> instead of <a href="/"> */}
+                     
                      <Link className="nav-link" to="/">Home</Link>
                   </li>
                   <li className="nav-item">
@@ -37,9 +37,6 @@ const Navbar = () => {
             </div>
          </div>
       </nav>
-
-
-
 
 
    );
