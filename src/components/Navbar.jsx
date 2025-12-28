@@ -30,7 +30,7 @@ const Navbar = () => {
 
                <div className="d-flex align-items-center gap-4">
                   <FiSearch className="fs-5 text-dark" style={{ cursor: 'pointer' }} />
-                  <button className="btn btn-success rounded-pill px-4 py-2 fw-semibold">
+                  <button to="/message" className="btn btn-success rounded-pill px-4 py-2 fw-semibold">
                      Call send us message
                   </button>
                </div>

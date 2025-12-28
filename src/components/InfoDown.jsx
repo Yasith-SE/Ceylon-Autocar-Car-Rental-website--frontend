@@ -2,7 +2,11 @@
 import { Link } from 'react-router-dom';
 import { BsChatDotsFill } from 'react-icons/bs'; // Make sure to npm install react-icons
 
+
 const InfoDown = () => {
+
+ 
+
   return (
     <div className="container py-5">
       <div className="row align-items-center">
@@ -64,14 +68,17 @@ const InfoDown = () => {
           </div>
 
           {/* Yellow Chat Widget */}
-          <div className="d-flex justify-content-end mt-5">
-            <button className="btn btn-warning rounded-circle p-3 shadow text-white">
+          {/* <div className="d-flex justify-content-end mt-5">
+            <Link className="btn btn-warning rounded-circle p-3 shadow text-white">
+
               <BsChatDotsFill size={24} />
-            </button>
-          </div>
+            </Link>
+          </div> */}
           
         </div>
       </div>
+      
+
     </div>
   );
 };

@@ -8,6 +8,7 @@ const Home = () => {
       <Navbar />
       <Slides />
      <InfoDown />
+    
     </>
   );
 };
