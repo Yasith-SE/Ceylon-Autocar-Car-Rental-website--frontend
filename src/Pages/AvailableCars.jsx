@@ -47,6 +47,20 @@ const AvailableCars = () => {
       year: "2021",
       price: 110,
       image: "https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      id: 7,
+      name: "Ford Mustang",
+      year: "2021",
+      price: 110,
+      image: "https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      id: 8,
+      name: "Ford Mustang",
+      year: "2021",
+      price: 110,
+      image: "https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?q=80&w=600&auto=format&fit=crop"
     }
   ];
 

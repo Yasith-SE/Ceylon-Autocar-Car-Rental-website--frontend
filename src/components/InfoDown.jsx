@@ -16,7 +16,7 @@ const InfoDown = () => {
               className="img-fluid rounded shadow-sm w-100"
             />
             
-            {/* Red "Book your car Now" Badge */}
+            {/* Red "Book your car Now" button */}
             <div className="position-absolute top-50 start-50 translate-middle">
              
                 <Link to="/login" className='btn btn-danger rounded-pill px-4 py-2 fw-bold shadow'>
