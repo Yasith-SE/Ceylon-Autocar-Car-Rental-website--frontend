@@ -1,4 +1,4 @@
-const CarCard = ({ image, name, price, year }) => {
+const Card = ({ image, name, price, year }) => {
     return (
         <div className="col-12 col-md-4 mb-4">
 
@@ -21,4 +21,4 @@ const CarCard = ({ image, name, price, year }) => {
     );
 };
 
-export default CarCard;
+export default Card;

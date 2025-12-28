@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Home from "./Pages/Home"
+import AvailableCars from "./Pages/AvailableCars"
 function App() {
  
   return (
@@ -8,7 +9,7 @@ function App() {
       <Routes>
 
         <Route path="/" element={<Home />} />
-
+        <Route path="/available" element={<AvailableCars />} />
       </Routes>
     </BrowserRouter>
 
