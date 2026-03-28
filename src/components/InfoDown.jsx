@@ -1,11 +1,6 @@
-
 import { Link } from 'react-router-dom';
-import { BsChatDotsFill } from 'react-icons/bs'; // Make sure to npm install react-icons
-
 
 const InfoDown = () => {
-
- 
 
   return (
     <div className="container py-5">
@@ -22,11 +17,9 @@ const InfoDown = () => {
             
             {/* Red "Book your car Now" button */}
             <div className="position-absolute top-50 start-50 translate-middle">
-             
                 <Link to="/login" className='btn btn-danger rounded-pill px-4 py-2 fw-bold shadow'>
                     Book Your Car Now
                 </Link>
-              
             </div>
           </div>
         </div>
@@ -58,27 +51,17 @@ const InfoDown = () => {
               View our service &gt;
             </Link>
             
-            <Link to="/signup" className="btn btn-primary rounded-pill px-5 fw-bold">
-              Sign Up
+            <Link to="/signup" className="btn btn-danger rounded-pill px-5 fw-bold">
+              Create account
             </Link>
             
-            <Link to="/login" className="btn btn-danger rounded-pill px-5 fw-bold">
+            <Link to="/login" className="btn btn-outline-danger rounded-pill px-5 fw-bold">
               Login
             </Link>
           </div>
-
-          {/* Yellow Chat Widget */}
-          {/* <div className="d-flex justify-content-end mt-5">
-            <Link className="btn btn-warning rounded-circle p-3 shadow text-white">
-
-              <BsChatDotsFill size={24} />
-            </Link>
-          </div> */}
           
         </div>
       </div>
-      
-
     </div>
   );
 };
