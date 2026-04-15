@@ -16,7 +16,7 @@ const AvailableCars = () => {
   const [rentalData, setRentalData] = useState({ pickupLocation: '', dropoffLocation: '', startDate: '', endDate: '' });
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/availablecars')
+    fetch('http://localhost:8081/api/availablecars')
       .then(response => response.json())
       .then(data => {
         setCars(data);

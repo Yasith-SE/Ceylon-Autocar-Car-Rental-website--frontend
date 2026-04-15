@@ -12,7 +12,7 @@ const Profile = () => {
     useEffect(() => {
         // Fetch fresh data from the database when the component loads
         if (user?.id) {
-            fetch(`http://localhost:8080/api/auth/profile/${user.id}`)
+            fetch(`http://localhost:8081/api/auth/profile/${user.id}`)
                 .then(res => res.json())
                 .then(data => {
                     setProfileData(data);
@@ -39,7 +39,7 @@ const Profile = () => {
         formData.append('imageFile', file);
 
         try {
-            const response = await fetch('http://localhost:8080/api/auth/update-profile-image', {
+            const response = await fetch('http://localhost:8081/api/auth/update-profile-image', {
                 method: 'POST',
                 body: formData, // Browser automatically sets the correct multipart headers
             });
