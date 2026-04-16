@@ -52,7 +52,7 @@ const InfoDown = () => {
             </Link>
             
             <Link to="/signup" className="btn btn-danger rounded-pill px-5 fw-bold">
-              Create account
+              Customer access
             </Link>
             
             <Link to="/login" className="btn btn-outline-danger rounded-pill px-5 fw-bold">

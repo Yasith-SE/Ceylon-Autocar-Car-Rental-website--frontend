@@ -10,11 +10,14 @@ import SignUp from "./Pages/SignUp";
 import UploadCar from "./Pages/UploadCar";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
-import Category from "./Pages/Category";       // NEW IMPORT
-import Dealership from "./Pages/Dealership";   // NEW IMPORT
+import Category from "./Pages/Category";       
+import Dealership from "./Pages/Dealership";   
+import ManageUsers from "./Pages/ManageUsers";
+import CarShowroom from "./Pages/CarShowroom"; // NEW IMPORT
+import AdminSupportChat from "./Pages/AdminSupportChat";
+
 import FloatingChat from "./components/FloatingChat";
 
-import ManageUsers from "./Pages/ManageUsers";
 function App() {
   return (
     <AuthProvider>
@@ -23,10 +26,11 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/available" element={<AvailableCars />} />
-          <Route path="/category" element={<Category />} />         {/* NEW ROUTE */}
-          <Route path="/dealership" element={<Dealership />} />     {/* NEW ROUTE */}
+          <Route path="/category" element={<Category />} />         
+          <Route path="/dealership" element={<Dealership />} />     
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/showroom" element={<CarShowroom />} /> {/* NEW ROUTE */}
 
           {/* Protected Routes - ADMIN & CUSTOMER */}
           <Route
@@ -60,6 +64,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/support-chat"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminSupportChat />
               </ProtectedRoute>
             }
           />
