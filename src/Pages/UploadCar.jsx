@@ -41,7 +41,7 @@ const UploadCar = () => {
     formData.append('imageFile', imageFile); // 'imageFile' matches the MultipartFile field in your Java DTO
 
     try {
-      const response = await fetch('http://localhost:8080/api/uploadcars', {
+      const response = await fetch('http://localhost:8081/api/uploadcars', {
         method: 'POST',
         // Important: Do NOT set 'Content-Type' headers. 
         // The browser automatically sets it to multipart/form-data with the correct boundary.

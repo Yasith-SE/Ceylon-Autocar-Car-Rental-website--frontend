@@ -10,13 +10,13 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         // Fetch Stats
-        fetch('http://localhost:8080/api/admin/stats')
+        fetch('http://localhost:8081/api/admin/stats')
             .then(res => res.json())
             .then(data => setStats(data))
             .catch(err => console.error(err));
 
         // Fetch Audit Logs
-        fetch('http://localhost:8080/api/admin/login-history')
+        fetch('http://localhost:8081/api/admin/login-history')
             .then(res => res.json())
             .then(data => {
                 setLoginLogs(data);
