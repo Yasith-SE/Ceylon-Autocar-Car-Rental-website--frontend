@@ -1,11 +1,18 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import useAuth from '../context/useAuth';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();
 
     // 1. If no user is logged in, send them to login
     if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (
+        user.accessStatus &&
+        user.accessStatus !== 'APPROVED'
+    ) {
         return <Navigate to="/login" replace />;
     }
 

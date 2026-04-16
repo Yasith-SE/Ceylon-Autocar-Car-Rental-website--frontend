@@ -1,42 +1,105 @@
+:root {
+  --surface-0: #f6f8fb;
+  --surface-1: #ffffff;
+  --surface-2: #edf2f7;
+  --text-strong: #111827;
+  --text-muted: #64748b;
+  --brand-red: #ef4444;
+  --brand-dark: #111827;
+  --brand-orange: #f97316;
+  --border-soft: rgba(148, 163, 184, 0.26);
+  color: var(--text-strong);
+  background: var(--surface-0);
+  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top left, rgba(239, 68, 68, 0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 24%),
+    linear-gradient(180deg, #fbfcfe 0%, #f5f7fb 100%);
+  color: var(--text-strong);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+  min-height: 100vh;
 }
 
 .card {
-  padding: 2em;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
 }
 
-.read-the-docs {
-  color: #888;
+.btn {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-control-color:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 0.22rem rgba(239, 68, 68, 0.14) !important;
+}
+
+.form-control,
+.form-select,
+.form-control-color {
+  border: 1px solid var(--border-soft);
+  box-shadow: none !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-control-color:focus {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.object-fit-cover {
+  object-fit: cover;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.55);
 }
