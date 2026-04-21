@@ -1610,6 +1610,35 @@ const PanelPartCard = ({
   </div>
 );
 
+class ModelSceneErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    this.props.onError?.(error);
+  }
+
+  componentDidUpdate(previousProps) {
+    if (previousProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? null;
+    }
+
+    return this.props.children;
+  }
+}
+
 const RealCarModel = ({
   modelPath,
   paintValues,
@@ -2169,6 +2198,7 @@ const ShowroomExperience = ({
   const [activeCustomizerTab, setActiveCustomizerTab] = useState(GARAGE_TABS[0].key);
   const [activePaintZoneKey, setActivePaintZoneKey] = useState('body');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [modelLoadError, setModelLoadError] = useState('');
   const [supportDraft, setSupportDraft] = useState(
     supportPromptTemplate ||
       `Hello, I am interested in the ${carName}. Please share the rental details.`,
@@ -2565,9 +2595,9 @@ const ShowroomExperience = ({
   const rentalAction = useMemo(() => {
     if (user?.role === 'ADMIN') {
       return {
-        label: 'Issue Customer Access',
+        label: 'Open Manager Tools',
         description:
-          'Staff accounts manage the rental desk. Create or hand over a customer login before starting the booking.',
+          'The preset manager account controls the rental desk and internal account records from the dashboard.',
         onClick: onManageAccess,
         style: 'btn-dark',
       };
@@ -2592,6 +2622,19 @@ const ShowroomExperience = ({
     };
   }, [carId, onManageAccess, onRequestRental, user?.role]);
 
+  const handleModelLoadError = useCallback((error) => {
+    const errorMessage = String(error?.message || '').trim();
+    const friendlyMessage = errorMessage.toLowerCase().includes('failed to fetch')
+      ? 'The saved GLB file could not be fetched from the uploads folder.'
+      : errorMessage || 'The 3D model could not be loaded for this car.';
+
+    setModelLoadError(friendlyMessage);
+  }, []);
+
+  useEffect(() => {
+    setModelLoadError('');
+  }, [carModelUrl]);
+
   return (
     <div
       className="d-flex flex-column min-vh-100"
@@ -2606,23 +2649,29 @@ const ShowroomExperience = ({
         className="position-relative w-100 overflow-hidden"
         style={{ height: 'calc(100vh - 92px)', marginTop: '92px' }}
       >
-        {carModelUrl ? (
+        {carModelUrl && !modelLoadError ? (
           <Canvas shadows dpr={[1, 2]} camera={{ position: [6.4, 2.5, 8.8], fov: 31, near: 0.05 }}>
             <fog attach="fog" args={['#e6e8ec', 12, 24]} />
             <color attach="background" args={['#e6e8ec']} />
 
-            <Suspense fallback={null}>
-              <Stage environment="city" intensity={0.48} adjustCamera preset="soft">
-                <RealCarModel
-                  modelPath={carModelUrl}
-                  paintValues={paintValues}
-                  partValues={partValues}
-                  tuningValues={tuningValues}
-                  paintFinishKey={paintFinishKey}
-                  onSetupDetected={handleSetupDetected}
-                />
-              </Stage>
-            </Suspense>
+            <ModelSceneErrorBoundary
+              resetKey={carModelUrl}
+              onError={handleModelLoadError}
+              fallback={null}
+            >
+              <Suspense fallback={null}>
+                <Stage environment="city" intensity={0.48} adjustCamera preset="soft">
+                  <RealCarModel
+                    modelPath={carModelUrl}
+                    paintValues={paintValues}
+                    partValues={partValues}
+                    tuningValues={tuningValues}
+                    paintFinishKey={paintFinishKey}
+                    onSetupDetected={handleSetupDetected}
+                  />
+                </Stage>
+              </Suspense>
+            </ModelSceneErrorBoundary>
 
             <OrbitControls
               makeDefault
@@ -2634,8 +2683,49 @@ const ShowroomExperience = ({
             />
           </Canvas>
         ) : (
-          <div className="d-flex align-items-center justify-content-center h-100">
-            <h4 className="text-muted">No 3D model available for this car.</h4>
+          <div
+            className="position-relative d-flex align-items-center justify-content-center h-100"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.84), rgba(127,29,29,0.82))',
+            }}
+          >
+            {heroGalleryImage ? (
+              <img
+                src={heroGalleryImage}
+                alt={carName}
+                className="position-absolute w-100 h-100"
+                style={{
+                  objectFit: 'cover',
+                  opacity: 0.2,
+                  filter: 'blur(2px) saturate(0.92)',
+                }}
+              />
+            ) : null}
+
+            <div
+              className="position-relative text-center text-white px-4 py-5 rounded-5"
+              style={{
+                maxWidth: '540px',
+                background: 'rgba(15, 23, 42, 0.58)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                backdropFilter: 'blur(14px)',
+              }}
+            >
+              <p
+                className="small fw-bold mb-2"
+                style={{ color: '#fda4af', letterSpacing: '0.18em', textTransform: 'uppercase' }}
+              >
+                Showroom Viewer
+              </p>
+              <h3 className="fw-bold mb-3">
+                {carModelUrl ? '3D model could not be loaded' : 'No 3D model available for this car'}
+              </h3>
+              <p className="mb-0" style={{ color: 'rgba(241,245,249,0.86)' }}>
+                {modelLoadError ||
+                  'This listing does not include a showroom model yet. The real photos and rental details are still available on this page.'}
+              </p>
+            </div>
           </div>
         )}
 

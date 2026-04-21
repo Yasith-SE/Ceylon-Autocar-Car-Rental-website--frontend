@@ -1,24 +1,39 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { FiLock, FiMail, FiShield } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiLock, FiMail, FiUserPlus } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 import useAuth from '../context/useAuth';
 import { buildApiUrl } from '../utils/api';
 
-const getHomeForRole = (role) =>
-  role === 'ADMIN' ? '/admin-dashboard' : '/available';
+const MANAGER_HOME = '/admin-dashboard';
+const EMPTY_CUSTOMER_REQUEST = {
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  confirmPassword: '',
+  licenseNumber: '',
+  address: '',
+  postalCode: '',
+  dateOfBirth: '',
+  notes: '',
+};
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [requestForm, setRequestForm] = useState(EMPTY_CUSTOMER_REQUEST);
+  const [requestError, setRequestError] = useState('');
+  const [requestSuccess, setRequestSuccess] = useState('');
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.role) {
-      navigate(getHomeForRole(user.role), { replace: true });
+    if (user?.role === 'ADMIN') {
+      navigate(MANAGER_HOME, { replace: true });
     }
   }, [navigate, user]);
 
@@ -39,17 +54,77 @@ const Login = () => {
       if (!response.ok) {
         setError(
           data.message ||
-            'Invalid email or password. Please check your credentials and try again.',
+            'Authorized manager credentials are required to sign in.',
         );
         return;
       }
 
       login(data);
-      navigate(getHomeForRole(data.user.role), { replace: true });
+      navigate(MANAGER_HOME, { replace: true });
     } catch {
       setError('Could not connect to the backend. Start the JWT API server and try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateRequestField = (key, value) => {
+    setRequestForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  };
+
+  const handleCustomerRequest = async (event) => {
+    event.preventDefault();
+    setRequestError('');
+    setRequestSuccess('');
+
+    if (requestForm.password.length < 8) {
+      setRequestError('Use a password with at least 8 characters.');
+      return;
+    }
+
+    if (requestForm.password !== requestForm.confirmPassword) {
+      setRequestError('Password confirmation does not match.');
+      return;
+    }
+
+    setRequestSubmitting(true);
+
+    try {
+      const response = await fetch(buildApiUrl('/auth/register'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: requestForm.name,
+          email: requestForm.email,
+          phone: requestForm.phone,
+          password: requestForm.password,
+          address: requestForm.address,
+          postalCode: requestForm.postalCode,
+          dateOfBirth: requestForm.dateOfBirth,
+          licenseNumber: requestForm.licenseNumber,
+          notes: requestForm.notes,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setRequestError(data.message || 'Could not submit the customer access request.');
+        return;
+      }
+
+      setRequestSuccess(
+        data.message ||
+          'Your request has been sent. The manager will review it and approve your account.',
+      );
+      setRequestForm(EMPTY_CUSTOMER_REQUEST);
+    } catch {
+      setRequestError('Could not connect to the backend. Start the API server and try again.');
+    } finally {
+      setRequestSubmitting(false);
     }
   };
 
@@ -75,29 +150,16 @@ const Login = () => {
               }}
             >
               <span className="badge rounded-pill text-bg-danger align-self-start mb-3">
-                Secure Staff + Customer Access
+                Customer Request
               </span>
-              <h1 className="fw-bold display-6 mb-3">Sign in with your registered account.</h1>
-              <p className="mb-3 text-white-50">
-                Admin and employee accounts can register and start using the dashboard right away.
-                Customer accounts must be approved by a manager before they can log in.
-              </p>
-              <div className="d-grid gap-3">
-                <div className="rounded-4 p-3" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                  <div className="d-flex align-items-center gap-2 fw-semibold mb-2">
-                    <FiShield /> JWT-secured access
-                  </div>
-                  <div className="small text-white-50">
-                    The backend now decides the real role. Customers cannot sign in as admins by
-                    changing the UI.
-                  </div>
-                </div>
-                <div className="rounded-4 p-3" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                  <div className="fw-semibold mb-2">Staff accounts</div>
-                  <div className="small text-white-50">
-                    Employees, managers, and fleet managers use approved admin credentials with
-                    full access.
-                  </div>
+              <h1 className="fw-bold display-6 mb-3">Request your customer account.</h1>
+              <div className="rounded-4 p-3" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="small text-white-50">
+                  Fill in your details once.
+                  <br />
+                  The manager will review your request.
+                  <br />
+                  After approval, your account will be activated.
                 </div>
               </div>
             </div>
@@ -107,12 +169,8 @@ const Login = () => {
             <div className="card border-0 shadow-lg rounded-5 h-100">
               <div className="card-body p-4 p-md-5">
                 <div className="mb-4">
-                  <p className="text-uppercase small fw-bold text-danger mb-2">Account Login</p>
-                  <h2 className="fw-bold mb-2">Email and password</h2>
-                  <p className="text-muted mb-0">
-                    Enter your account credentials. The backend will route admins to the dashboard
-                    and customers to the rental fleet.
-                  </p>
+                  <p className="text-uppercase small fw-bold text-danger mb-2">Manage your Login</p>
+                  <h2 className="fw-bold mb-2">Authorized account access</h2>
                 </div>
 
                 {error ? <div className="alert alert-danger rounded-4">{error}</div> : null}
@@ -152,15 +210,6 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-4 border bg-light p-4 mb-4">
-                    <div className="fw-semibold mb-2">Access rules</div>
-                    <div className="small text-muted">
-                      Admin and employee accounts can sign in immediately after registration.
-                      Customer registrations stay blocked until a manager approves them from user
-                      management.
-                    </div>
-                  </div>
-
                   <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-3">
                     <button
                       className="btn btn-dark rounded-pill fw-bold px-4 py-3"
@@ -169,15 +218,177 @@ const Login = () => {
                     >
                       {loading ? 'Signing in...' : 'Login'}
                     </button>
-
-                    <span className="text-muted small">
-                      Need a customer account?{' '}
-                      <Link to="/signup" className="text-decoration-none fw-semibold text-dark">
-                        Register here
-                      </Link>
-                    </span>
                   </div>
                 </form>
+
+                <div className="border-top mt-5 pt-4">
+                  <div className="d-flex align-items-center gap-2 fw-bold mb-2">
+                    <FiUserPlus className="text-danger" />
+                    Customer Access Request
+                  </div>
+                  <p className="text-muted mb-4">
+                    Fill in your details once. The manager will review your request and activate
+                    your account after approval.
+                  </p>
+
+                  {requestSuccess ? (
+                    <div className="alert alert-success rounded-4 border-0">
+                      <div className="d-flex align-items-start gap-3">
+                        <FiCheckCircle size={20} className="mt-1 flex-shrink-0" />
+                        <div className="small">{requestSuccess}</div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {requestError ? (
+                    <div className="alert alert-danger rounded-4">{requestError}</div>
+                  ) : null}
+
+                  <form onSubmit={handleCustomerRequest}>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Full Name</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-4"
+                          value={requestForm.name}
+                          onChange={(event) => updateRequestField('name', event.target.value)}
+                          placeholder="Customer name"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Email</label>
+                        <input
+                          type="email"
+                          className="form-control rounded-4"
+                          value={requestForm.email}
+                          onChange={(event) => updateRequestField('email', event.target.value)}
+                          placeholder="name@example.com"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Phone</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-4"
+                          value={requestForm.phone}
+                          onChange={(event) => updateRequestField('phone', event.target.value)}
+                          placeholder="+94 77 123 4567"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">License / NIC</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-4"
+                          value={requestForm.licenseNumber}
+                          onChange={(event) =>
+                            updateRequestField('licenseNumber', event.target.value)
+                          }
+                          placeholder="License or NIC"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Date of Birth</label>
+                        <input
+                          type="date"
+                          className="form-control rounded-4"
+                          value={requestForm.dateOfBirth}
+                          onChange={(event) => updateRequestField('dateOfBirth', event.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Postal Code</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-4"
+                          value={requestForm.postalCode}
+                          onChange={(event) => updateRequestField('postalCode', event.target.value)}
+                          placeholder="Postal"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label fw-semibold">Address</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-4"
+                          value={requestForm.address}
+                          onChange={(event) => updateRequestField('address', event.target.value)}
+                          placeholder="Street, town, and district"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Password</label>
+                        <input
+                          type="password"
+                          className="form-control rounded-4"
+                          value={requestForm.password}
+                          onChange={(event) => updateRequestField('password', event.target.value)}
+                          placeholder="Create a password"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">Confirm Password</label>
+                        <input
+                          type="password"
+                          className="form-control rounded-4"
+                          value={requestForm.confirmPassword}
+                          onChange={(event) =>
+                            updateRequestField('confirmPassword', event.target.value)
+                          }
+                          placeholder="Repeat password"
+                          required
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label fw-semibold">Notes</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-4"
+                          value={requestForm.notes}
+                          onChange={(event) => updateRequestField('notes', event.target.value)}
+                          placeholder="Trip details, branch preference, rental purpose..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="rounded-4 border bg-light p-4 mt-4 mb-4">
+                      <div className="d-flex align-items-center gap-2 fw-semibold mb-2">
+                        <FiClock className="text-danger" />
+                        What happens next
+                      </div>
+                      <div className="small text-muted">
+                        Your request is sent for review. Once the manager approves it, your
+                        customer account becomes active.
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={requestSubmitting}
+                      className="btn btn-danger rounded-pill fw-bold px-4 py-3"
+                    >
+                      {requestSubmitting ? 'Submitting request...' : 'Submit Request'}
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

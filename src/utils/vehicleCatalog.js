@@ -1,3 +1,5 @@
+import { buildBackendAssetUrl } from './api';
+
 export const VEHICLE_CATEGORIES = [
   {
     key: 'sports',
@@ -435,6 +437,58 @@ const normalizeText = (value = '') =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
+const parseAssetList = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item || '').trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+      return [];
+    }
+
+    if (/^(data:|blob:)/i.test(trimmedValue)) {
+      return [trimmedValue];
+    }
+
+    if (trimmedValue.startsWith('[')) {
+      try {
+        return parseAssetList(JSON.parse(trimmedValue));
+      } catch {
+        return trimmedValue
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    }
+
+    return trimmedValue
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const normalizeVehicleAssets = (vehicle = {}) => {
+  const galleryImages = [
+    buildBackendAssetUrl(vehicle.image),
+    ...parseAssetList(vehicle.galleryImages).map((item) => buildBackendAssetUrl(item)),
+    ...parseAssetList(vehicle.realImages).map((item) => buildBackendAssetUrl(item)),
+  ].filter(Boolean);
+  const uniqueGalleryImages = [...new Set(galleryImages)];
+
+  return {
+    ...vehicle,
+    image: uniqueGalleryImages[0] || buildBackendAssetUrl(vehicle.image),
+    galleryImages: uniqueGalleryImages,
+    modelUrl: buildBackendAssetUrl(vehicle.modelUrl),
+  };
+};
+
 const parseNumericValue = (value) => {
   if (value === null || value === undefined || value === '') {
     return null;
@@ -542,20 +596,21 @@ export const inferVehicleCategory = ({
 };
 
 export const enrichVehicleRecord = (vehicle = {}) => {
+  const normalizedVehicle = normalizeVehicleAssets(vehicle);
   const inferredCategory = inferVehicleCategory({
-    name: vehicle.name,
-    imageName: vehicle.image,
-    existingCategory: vehicle.category,
+    name: normalizedVehicle.name,
+    imageName: normalizedVehicle.image,
+    existingCategory: normalizedVehicle.category,
   });
   const categoryMeta = getVehicleCategoryMeta(inferredCategory.key);
   const performanceProfile = resolveVehiclePerformance({
-    ...vehicle,
+    ...normalizedVehicle,
     categoryKey: categoryMeta.key,
     categoryLabel: categoryMeta.label,
   });
 
   return {
-    ...vehicle,
+    ...normalizedVehicle,
     categoryKey: categoryMeta.key,
     categoryLabel: categoryMeta.label,
     categoryMeta,

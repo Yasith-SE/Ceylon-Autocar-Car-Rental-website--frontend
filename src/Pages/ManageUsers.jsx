@@ -248,7 +248,8 @@ const ManageUsers = () => {
           <div>
             <h2 className="fw-bold m-0">User Access Management</h2>
             <p className="text-muted mb-0">
-              Manage customers, employees, and approval status through the JWT-protected backend.
+              Review customer access requests and manage internal customer and staff records from
+              the manager dashboard.
             </p>
           </div>
 
@@ -439,8 +440,8 @@ const ManageUsers = () => {
                   <div className="rounded-4 border bg-light p-3 mt-4">
                     <div className="fw-semibold mb-1">Created by {user?.name || 'Admin'}</div>
                     <div className="small text-muted">
-                      Accounts created from this form are written directly to the backend and
-                      approved immediately.
+                      Accounts created from this screen are approved immediately. Customer requests
+                      submitted from the login page arrive separately in the pending approval list.
                     </div>
                   </div>
 
@@ -474,8 +475,9 @@ const ManageUsers = () => {
                 <div className="rounded-4 border p-3">
                   <div className="fw-semibold mb-2">Approval handling</div>
                   <div className="small text-muted">
-                    Public customer sign-ups appear as pending approvals. Managers can approve,
-                    reject, pause, or reactivate them below.
+                    Customer access requests submitted from the login page appear here as
+                    `PENDING_APPROVAL`. Managers can approve, reject, pause, reactivate, or remove
+                    accounts from this panel.
                   </div>
                 </div>
 
@@ -641,7 +643,8 @@ const ManageUsers = () => {
                 ) : (
                   <tr>
                     <td colSpan="6" className="text-center py-5 text-muted">
-                      No users found for the current search and status filter.
+                      No users found for the current search and status filter. New customer access
+                      requests will appear here after they are submitted from the login page.
                     </td>
                   </tr>
                 )}
