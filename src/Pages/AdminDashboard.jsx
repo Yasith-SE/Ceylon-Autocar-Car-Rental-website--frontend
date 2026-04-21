@@ -81,8 +81,7 @@ const AdminDashboard = () => {
             <p className="text-uppercase small fw-bold text-danger mb-2">Admin Control Center</p>
             <h2 className="fw-bold mb-2">Backend-secured operations dashboard</h2>
             <p className="text-muted mb-0">
-              Review live login events, pending approvals, and the overall user base through the
-              JWT-protected API.
+              Review manager login events and the overall account directory through the JWT-protected API.
             </p>
           </div>
 
@@ -178,7 +177,7 @@ const AdminDashboard = () => {
                 <FiClock /> Login History And Audit Logs
               </h5>
               <div className="small text-muted mt-1">
-                Recent admin and customer sign-ins recorded by the backend.
+                Recent preset-manager sign-ins recorded by the backend.
               </div>
             </div>
             <div className="input-group" style={{ width: 'min(100%, 320px)' }}>

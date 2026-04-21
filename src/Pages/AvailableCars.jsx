@@ -85,6 +85,8 @@ const AvailableCars = () => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState(null);
+  const [photoViewerCar, setPhotoViewerCar] = useState(null);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
   const [rentalData, setRentalData] = useState(createEmptyRentalRequest);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const pickupInputRef = useRef(null);
@@ -293,9 +295,9 @@ const AvailableCars = () => {
       notify({
         type: 'warning',
         eyebrow: 'Access Control',
-        title: 'Customer account required',
+        title: 'Manager dashboard account detected',
         message:
-          'Staff accounts manage the fleet. Switch to a customer login to create rental requests.',
+          'The preset manager account manages the fleet. Customer self-service login is disabled in this build.',
       });
       return;
     }
@@ -304,9 +306,61 @@ const AvailableCars = () => {
     setSelectedCar(car);
   };
 
+  const openPhotoViewer = (car, startIndex = 0) => {
+    const galleryImages = [...new Set([car.image, ...(car.galleryImages || [])].filter(Boolean))];
+
+    if (!galleryImages.length) {
+      notify({
+        type: 'warning',
+        eyebrow: car.name,
+        title: 'No real images available',
+        message: 'This listing does not have uploaded real photos yet.',
+      });
+      return;
+    }
+
+    setPhotoViewerCar({
+      ...car,
+      galleryImages,
+    });
+    setPhotoViewerIndex(Math.min(Math.max(startIndex, 0), galleryImages.length - 1));
+  };
+
+  const closePhotoViewer = () => {
+    setPhotoViewerCar(null);
+    setPhotoViewerIndex(0);
+  };
+
   const closeRentalModal = () => {
     setSelectedCar(null);
     resetRentalForm();
+  };
+
+  const activePhotoGallery = useMemo(
+    () => (photoViewerCar ? photoViewerCar.galleryImages || [] : []),
+    [photoViewerCar],
+  );
+
+  const activePhoto = activePhotoGallery[photoViewerIndex] || '';
+
+  const showPreviousPhoto = () => {
+    if (!activePhotoGallery.length) {
+      return;
+    }
+
+    setPhotoViewerIndex((current) =>
+      current === 0 ? activePhotoGallery.length - 1 : current - 1,
+    );
+  };
+
+  const showNextPhoto = () => {
+    if (!activePhotoGallery.length) {
+      return;
+    }
+
+    setPhotoViewerIndex((current) =>
+      current === activePhotoGallery.length - 1 ? 0 : current + 1,
+    );
   };
 
   const updateRentalField = (key, value) => {
@@ -677,8 +731,8 @@ const AvailableCars = () => {
                       <div className="rounded-4 bg-dark text-white h-100 d-flex align-items-center px-4">
                         <small className="mb-0">
                           {user?.role === 'CUSTOMER'
-                            ? 'Customer mode: tell us your purpose, travel route, and distance to get a smarter rental estimate.'
-                            : 'Login with an approved customer account to request rentals and chat with the showroom team.'}
+                            ? 'Choose your car, add your trip plan, and send the request to receive a clearer rental estimate.'
+                            : 'Browse the fleet, review the real images, and request customer access when you are ready.'}
                         </small>
                       </div>
                     )}
@@ -772,6 +826,7 @@ const AvailableCars = () => {
                 key={car.id}
                 car={car}
                 onRent={() => handleRentClick(car)}
+                onShowPhotos={() => openPhotoViewer(car)}
                 canRent={user?.role === 'CUSTOMER'}
                 bookingStatusLabel={
                   user?.role === 'CUSTOMER'
@@ -805,6 +860,93 @@ const AvailableCars = () => {
           </div>
         )}
       </div>
+
+      {photoViewerCar && (
+        <div
+          className="modal show d-block"
+          style={{ backgroundColor: 'rgba(15, 23, 42, 0.72)' }}
+          tabIndex="-1"
+        >
+          <div className="modal-dialog modal-dialog-centered modal-xl">
+            <div className="modal-content border-0 shadow-lg rounded-5 overflow-hidden">
+              <div className="modal-header border-0 px-4 pt-4 pb-0">
+                <div>
+                  <p className="text-uppercase small fw-bold text-danger mb-1">Real Car Images</p>
+                  <h4 className="modal-title fw-bold mb-1">{photoViewerCar.name}</h4>
+                  <div className="small text-muted">
+                    Uploaded photos {activePhotoGallery.length ? photoViewerIndex + 1 : 0} of{' '}
+                    {activePhotoGallery.length}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={closePhotoViewer}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="rounded-5 overflow-hidden bg-dark position-relative mb-4">
+                  {activePhoto ? (
+                    <img
+                      src={activePhoto}
+                      alt={`${photoViewerCar.name} real view ${photoViewerIndex + 1}`}
+                      className="w-100"
+                      style={{ maxHeight: '68vh', objectFit: 'contain', background: '#111827' }}
+                    />
+                  ) : null}
+
+                  {activePhotoGallery.length > 1 ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={showPreviousPhoto}
+                        className="btn btn-light rounded-pill position-absolute top-50 start-0 translate-middle-y ms-3 px-3 fw-semibold"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={showNextPhoto}
+                        className="btn btn-light rounded-pill position-absolute top-50 end-0 translate-middle-y me-3 px-3 fw-semibold"
+                      >
+                        Next
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+
+                {activePhotoGallery.length > 1 ? (
+                  <div className="row g-3">
+                    {activePhotoGallery.map((galleryImage, index) => (
+                      <div key={`${galleryImage}-${index}`} className="col-6 col-md-3">
+                        <button
+                          type="button"
+                          onClick={() => setPhotoViewerIndex(index)}
+                          className="btn p-0 border-0 rounded-4 overflow-hidden w-100 bg-transparent"
+                          style={{
+                            outline:
+                              photoViewerIndex === index
+                                ? '3px solid rgba(239, 68, 68, 0.9)'
+                                : '1px solid rgba(15, 23, 42, 0.08)',
+                          }}
+                        >
+                          <img
+                            src={galleryImage}
+                            alt={`${photoViewerCar.name} thumbnail ${index + 1}`}
+                            className="w-100"
+                            style={{ height: '120px', objectFit: 'cover' }}
+                          />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedCar && (
         <div

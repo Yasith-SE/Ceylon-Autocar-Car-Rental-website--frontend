@@ -4,10 +4,14 @@ import { FiBox, FiCalendar, FiCamera, FiLayers, FiZap } from 'react-icons/fi';
 const Card = ({
   car,
   onRent,
+  onShowPhotos,
   canRent,
   bookingStatusLabel = canRent ? 'Staff-assisted booking' : 'Customer login required',
   rentButtonLabel = canRent ? 'Request Rental' : 'Login as Customer',
 }) => {
+  const realPhotoCount = [...new Set([car.image, ...(car.galleryImages || [])].filter(Boolean))]
+    .length;
+
   return (
     <div className="col-12 col-md-6 col-xl-4">
       <div className="card border-0 shadow-sm rounded-5 h-100 overflow-hidden">
@@ -27,10 +31,10 @@ const Card = ({
               {car.categoryLabel}
             </span>
             {car.modelUrl && <span className="badge rounded-pill text-bg-dark px-3 py-2">3D Ready</span>}
-            {car.galleryImages?.length > 1 ? (
+            {realPhotoCount > 1 ? (
               <span className="badge rounded-pill bg-light text-dark px-3 py-2">
                 <FiCamera className="me-1" />
-                {car.galleryImages.length} Real Photos
+                {realPhotoCount} Real Photos
               </span>
             ) : null}
           </div>
@@ -90,36 +94,49 @@ const Card = ({
             Source: {car.inventorySource === 'LOCAL_UPLOAD' ? 'Uploaded locally' : 'Fleet library'}
           </div>
 
-          <div className="d-flex gap-2 mt-auto">
-            <button
-              onClick={onRent}
-              className="btn btn-dark rounded-pill w-100 fw-bold py-2"
-            >
-              {rentButtonLabel}
-            </button>
+          <div className="mt-auto d-grid gap-2">
+            <div className="d-flex gap-2">
+              <button
+                onClick={onRent}
+                className="btn btn-dark rounded-pill w-100 fw-bold py-2"
+              >
+                {rentButtonLabel}
+              </button>
 
-            <Link
-              to={`/showroom?car=${encodeURIComponent(car.id)}`}
-              state={{
-                carId: car.id,
-                carName: car.name,
-                carYear: car.year,
-                carPrice: car.price,
-                categoryLabel: car.categoryLabel,
-                carImage: car.image,
-                galleryImages: car.galleryImages,
-                modelUrl: car.modelUrl,
-                performanceProfile: car.performanceProfile,
-                showroomSummary: car.showroomSummary,
-                supportPromptTemplate: car.supportPromptTemplate,
-                partHighlights: car.partHighlights,
-              }}
-              className={`btn rounded-pill w-100 fw-bold py-2 text-decoration-none text-center ${
-                car.modelUrl ? 'btn-outline-danger' : 'btn-outline-secondary disabled'
+              <Link
+                to={`/showroom?car=${encodeURIComponent(car.id)}`}
+                state={{
+                  carId: car.id,
+                  carName: car.name,
+                  carYear: car.year,
+                  carPrice: car.price,
+                  categoryLabel: car.categoryLabel,
+                  carImage: car.image,
+                  galleryImages: car.galleryImages,
+                  modelUrl: car.modelUrl,
+                  performanceProfile: car.performanceProfile,
+                  showroomSummary: car.showroomSummary,
+                  supportPromptTemplate: car.supportPromptTemplate,
+                  partHighlights: car.partHighlights,
+                }}
+                className={`btn rounded-pill w-100 fw-bold py-2 text-decoration-none text-center ${
+                  car.modelUrl ? 'btn-outline-danger' : 'btn-outline-secondary disabled'
+                }`}
+              >
+                3D View
+              </Link>
+            </div>
+
+            <button
+              type="button"
+              onClick={onShowPhotos}
+              disabled={!realPhotoCount}
+              className={`btn rounded-pill fw-bold py-2 ${
+                realPhotoCount ? 'btn-outline-dark' : 'btn-outline-secondary'
               }`}
             >
-              3D View
-            </Link>
+              {realPhotoCount ? `Show Real Images (${realPhotoCount})` : 'No Real Images'}
+            </button>
           </div>
         </div>
       </div>

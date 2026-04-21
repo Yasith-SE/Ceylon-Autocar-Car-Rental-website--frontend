@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -6,7 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./Pages/Home";
 import AvailableCars from "./Pages/AvailableCars";
 import Login from "./Pages/Login";
-import SignUp from "./Pages/SignUp";
+import Service from "./Pages/Service";
 import UploadCar from "./Pages/UploadCar";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
@@ -29,7 +29,8 @@ function App() {
           <Route path="/category" element={<Category />} />         
           <Route path="/dealership" element={<Dealership />} />     
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/service" element={<Service />} />
+          <Route path="/signup" element={<Navigate to="/login" replace />} />
           <Route path="/showroom" element={<CarShowroom />} /> {/* NEW ROUTE */}
 
           {/* Protected Routes - ADMIN & CUSTOMER */}

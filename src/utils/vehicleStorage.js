@@ -1,3 +1,5 @@
+import { buildBackendAssetUrl } from './api';
+
 const VEHICLE_DB_NAME = 'ceylon-autocar-vehicle-library';
 const VEHICLE_STORE_NAME = 'vehicles';
 const VEHICLE_DB_VERSION = 1;
@@ -21,7 +23,9 @@ const normalizeText = (value = '') =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-const parseStringArray = (value) => {
+const parseStringArray = (value, options = {}) => {
+  const { preserveAssetUrls = false } = options;
+
   if (Array.isArray(value)) {
     return value
       .map((item) => String(item || '').trim())
@@ -35,9 +39,13 @@ const parseStringArray = (value) => {
       return [];
     }
 
+    if (preserveAssetUrls && /^(data:|blob:)/i.test(trimmedValue)) {
+      return [trimmedValue];
+    }
+
     if (trimmedValue.startsWith('[')) {
       try {
-        return parseStringArray(JSON.parse(trimmedValue));
+        return parseStringArray(JSON.parse(trimmedValue), options);
       } catch {
         return trimmedValue
           .split(',')
@@ -57,11 +65,29 @@ const parseStringArray = (value) => {
 
 const uniqueStrings = (values) => [...new Set(values.filter(Boolean))];
 
+const normalizeAssetValue = (value = '') => {
+  const trimmedValue = String(value || '').trim();
+
+  if (!trimmedValue) {
+    return '';
+  }
+
+  if (/^(data:|blob:)/i.test(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  return buildBackendAssetUrl(trimmedValue);
+};
+
 const normalizeVehicleRecord = (vehicle = {}) => {
   const galleryImages = uniqueStrings([
-    vehicle.image,
-    ...parseStringArray(vehicle.galleryImages),
-    ...parseStringArray(vehicle.realImages),
+    normalizeAssetValue(vehicle.image),
+    ...parseStringArray(vehicle.galleryImages, { preserveAssetUrls: true }).map((item) =>
+      normalizeAssetValue(item),
+    ),
+    ...parseStringArray(vehicle.realImages, { preserveAssetUrls: true }).map((item) =>
+      normalizeAssetValue(item),
+    ),
   ]);
   const partHighlights = uniqueStrings(parseStringArray(vehicle.partHighlights));
 
@@ -74,7 +100,7 @@ const normalizeVehicleRecord = (vehicle = {}) => {
     category: String(vehicle.category || vehicle.categoryKey || 'uncategorized').trim(),
     image: galleryImages[0] || '',
     galleryImages,
-    modelUrl: String(vehicle.modelUrl || '').trim(),
+    modelUrl: normalizeAssetValue(vehicle.modelUrl),
     showroomSummary: String(vehicle.showroomSummary || DEFAULT_SHOWROOM_SUMMARY).trim(),
     supportPromptTemplate: String(
       vehicle.supportPromptTemplate || DEFAULT_SUPPORT_PROMPT,
@@ -256,6 +282,42 @@ const countStoredVehicles = async () =>
     request.onerror = () => reject(request.error || new Error('Could not count vehicles.'));
   });
 
+const vehicleAssetsNeedRepair = (originalVehicle = {}, normalizedVehicle = {}) => {
+  const originalImage = String(originalVehicle.image || '').trim();
+  const originalModelUrl = String(originalVehicle.modelUrl || '').trim();
+  const originalGalleryImages = uniqueStrings([
+    originalImage,
+    ...parseStringArray(originalVehicle.galleryImages, { preserveAssetUrls: true }),
+    ...parseStringArray(originalVehicle.realImages, { preserveAssetUrls: true }),
+  ]);
+
+  if (originalImage !== normalizedVehicle.image) {
+    return true;
+  }
+
+  if (originalModelUrl !== normalizedVehicle.modelUrl) {
+    return true;
+  }
+
+  if (originalGalleryImages.length !== normalizedVehicle.galleryImages.length) {
+    return true;
+  }
+
+  return originalGalleryImages.some(
+    (galleryImage, index) => galleryImage !== normalizedVehicle.galleryImages[index],
+  );
+};
+
+const repairStoredVehicle = async (vehicle) => {
+  const normalizedVehicle = normalizeVehicleRecord(vehicle);
+
+  if (vehicleAssetsNeedRepair(vehicle, normalizedVehicle)) {
+    await saveVehicleRaw(normalizedVehicle).catch(() => {});
+  }
+
+  return normalizedVehicle;
+};
+
 const fileToDataUrl = (file) =>
   new Promise((resolve, reject) => {
     if (!file) {
@@ -282,9 +344,13 @@ export const seedLocalVehicleLibrary = async () => {
 export const listStoredVehicles = async () => {
   await seedLocalVehicleLibrary().catch(() => {});
   const storedVehicles = await getAllStoredVehiclesRaw().catch(() => []);
+  const repairedVehicles = [];
 
-  return storedVehicles
-    .map((vehicle) => normalizeVehicleRecord(vehicle))
+  for (const vehicle of storedVehicles) {
+    repairedVehicles.push(await repairStoredVehicle(vehicle));
+  }
+
+  return repairedVehicles
     .sort(
       (leftVehicle, rightVehicle) =>
         new Date(rightVehicle.createdAt || 0).getTime() -
@@ -299,7 +365,7 @@ export const findStoredVehicleById = async (vehicleId) => {
 
   await seedLocalVehicleLibrary().catch(() => {});
   const vehicle = await getStoredVehicleRawById(String(vehicleId)).catch(() => null);
-  return vehicle ? normalizeVehicleRecord(vehicle) : null;
+  return vehicle ? repairStoredVehicle(vehicle) : null;
 };
 
 export const saveVehicleUpload = async ({

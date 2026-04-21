@@ -112,9 +112,6 @@ const Navbar = () => {
                 <Link to="/login" className="btn btn-outline-dark rounded-pill px-4 fw-semibold">
                   Login
                 </Link>
-                <Link to="/signup" className="btn btn-danger rounded-pill px-4 fw-semibold">
-                  Register
-                </Link>
               </div>
             ) : (
               <>
